@@ -1,0 +1,115 @@
+name: Update Transcripts
+
+on:
+  schedule:
+    # Run every Monday at 9am UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if no new transcripts'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for upstream updates
+        id: check
+        run: node scripts/check-updates.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download latest transcripts
+        if: steps.check.outputs.has_updates == 'true' || github.event.inputs.force_update == 'true'
+        run: |
+          echo "Downloading transcripts from ChatPRD/lennys-podcast-transcripts..."
+          rm -rf data/transcripts
+          mkdir -p data/transcripts
+          git clone --depth 1 https://github.com/ChatPRD/lennys-podcast-transcripts.git temp-transcripts
+          cp -r temp-transcripts/transcripts/* data/transcripts/
+          rm -rf temp-transcripts
+          echo "Downloaded $(ls data/transcripts | wc -l) transcripts"
+
+      - name: Rebuild search index
+        if: steps.check.outputs.has_updates == 'true' || github.event.inputs.force_update == 'true'
+        run: npm run build
+
+      - name: Bump version
+        if: steps.check.outputs.has_updates == 'true' || github.event.inputs.force_update == 'true'
+        id: version
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT"
+          npm version patch --no-git-tag-version
+          NEW=$(node -p "require('./package.json').version")
+          echo "New version: $NEW"
+          echo "new_version=$NEW" >> $GITHUB_OUTPUT
+
+      - name: Commit and push changes
+        if: steps.check.outputs.has_updates == 'true' || github.event.inputs.force_update == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: update transcripts to ${{ steps.check.outputs.episode_count }} episodes
+
+          - Updated from ChatPRD/lennys-podcast-transcripts
+          - Rebuilt search index
+          - Version bump to ${{ steps.version.outputs.new_version }}"
+          git push
+
+      - name: Publish to npm
+        if: steps.check.outputs.has_updates == 'true' || github.event.inputs.force_update == 'true'
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.has_updates == 'true' || github.event.inputs.force_update == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: v${{ steps.version.outputs.new_version }}
+          body: |
+            ## What's New
+
+            - Updated transcripts to ${{ steps.check.outputs.episode_count }} episodes
+            - Rebuilt search index with latest content
+
+            ## Install/Update
+
+            ```bash
+            npm install -g lennys-podcast-wisdom@${{ steps.version.outputs.new_version }}
+            ```
+          draft: false
+          prerelease: false
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "${{ steps.check.outputs.has_updates }}" == "true" ] || [ "${{ github.event.inputs.force_update }}" == "true" ]; then
+            echo "✅ Updated to ${{ steps.check.outputs.episode_count }} episodes"
+            echo "📦 Published version ${{ steps.version.outputs.new_version }} to npm"
+          else
+            echo "ℹ️ No updates found. Current episode count: ${{ steps.check.outputs.episode_count }}"
+          fi
