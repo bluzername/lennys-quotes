@@ -7,7 +7,11 @@
 [![npm version](https://img.shields.io/npm/v/lennys-podcast-wisdom.svg)](https://www.npmjs.com/package/lennys-podcast-wisdom)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-*Query 269 episodes of Lenny's Podcast directly from Claude Code, Cursor, or any MCP-compatible AI assistant.*
+*Query 269 episodes of [Lenny's Podcast](https://www.lennysnewsletter.com/podcast) directly from Claude Code, Cursor, or any MCP-compatible AI assistant.*
+
+> **Credit:** This tool is built on the incredible content from [Lenny Rachitsky's Podcast](https://www.lennysnewsletter.com/podcast) — the #1 podcast for product people. Subscribe to support Lenny's work!
+
+![Demo](demo.gif)
 
 [Installation](#installation) · [Usage](#usage) · [Tools](#tools) · [Examples](#examples)
 
