@@ -139,6 +139,18 @@ Transcripts from [ChatPRD/lennys-podcast-transcripts](https://github.com/ChatPRD
 
 ---
 
+## Automatic Updates
+
+This package stays current automatically:
+
+- **Weekly checks** for new Lenny's Podcast episodes (every Monday)
+- **Auto-published** to npm when new transcripts are available
+- **No action required** — just run `npm update -g lennys-podcast-wisdom`
+
+[![Update Status](https://github.com/bluzername/lennys-quotes/actions/workflows/update-transcripts.yml/badge.svg)](https://github.com/bluzername/lennys-quotes/actions/workflows/update-transcripts.yml)
+
+---
+
 ## License
 
 MIT
