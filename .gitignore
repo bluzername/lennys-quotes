@@ -1,0 +1,8 @@
+node_modules/
+dist/
+data/transcripts/
+*.log
+.DS_Store
+test-results/
+test*.txt
+*.output

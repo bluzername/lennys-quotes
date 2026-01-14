@@ -1,0 +1,53 @@
+{
+  "name": "lennys-podcast-wisdom",
+  "version": "1.0.0",
+  "description": "MCP server for querying product management wisdom from Lenny's Podcast transcripts",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "lennys-wisdom": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "scripts/download-transcripts.js",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "postinstall": "node scripts/download-transcripts.js",
+    "download-transcripts": "node scripts/download-transcripts.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bluzername/lennys-quotes.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "lenny",
+    "podcast",
+    "product-management",
+    "ai",
+    "claude"
+  ],
+  "author": "Evyatar Bluzer",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "glob": "^10.3.0",
+    "gray-matter": "^4.0.3",
+    "lunr": "^2.3.9",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/lunr": "^2.3.7",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
