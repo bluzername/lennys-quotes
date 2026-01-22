@@ -44,11 +44,8 @@ jobs:
         run: |
           echo "Downloading transcripts from ChatPRD/lennys-podcast-transcripts..."
           rm -rf data/transcripts
-          mkdir -p data/transcripts
-          git clone --depth 1 https://github.com/ChatPRD/lennys-podcast-transcripts.git temp-transcripts
-          cp -r temp-transcripts/transcripts/* data/transcripts/
-          rm -rf temp-transcripts
-          echo "Downloaded $(ls data/transcripts | wc -l) transcripts"
+          git clone --depth 1 https://github.com/ChatPRD/lennys-podcast-transcripts.git data/transcripts
+          echo "Downloaded $(ls data/transcripts/episodes | wc -l) episodes"
 
       - name: Rebuild search index
         if: steps.check.outputs.has_updates == 'true' || github.event.inputs.force_update == 'true'
