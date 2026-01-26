@@ -1,6 +1,6 @@
 {
   "name": "lennys-podcast-wisdom",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for querying product management wisdom from Lenny's Podcast transcripts",
   "type": "module",
   "main": "dist/index.js",
