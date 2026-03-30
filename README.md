@@ -45,6 +45,10 @@ claude mcp add lennys-wisdom -- npx lennys-podcast-wisdom
 
 ---
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/bluzername-lennys-quotes).
+
 ## Usage
 
 Once installed, just ask naturally:
