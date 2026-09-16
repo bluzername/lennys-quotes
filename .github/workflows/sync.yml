@@ -1,0 +1,74 @@
+name: Sync transcripts
+
+# Weekly: pull new episodes from Lenny's public Dropbox folder, enrich metadata from
+# YouTube, commit them, rebuild the search database and publish it as the rolling
+# "data" release. Installed servers pick the new database up automatically.
+
+on:
+  schedule:
+    - cron: '0 14 * * 1'
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: 'Also fill missing publish dates / views for existing episodes (uses yt-dlp)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install yt-dlp (optional enrichment; RSS is the primary metadata source)
+        run: pipx install yt-dlp || pip install --user yt-dlp || true
+
+      - name: Ingest new episodes
+        run: npm run sync -- ${{ inputs.backfill && '--backfill' || '' }}
+
+      - name: Rebuild database
+        run: npm run build:db
+
+      - name: Commit transcripts and status
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add episodes data/status.json
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No new episodes."
+          else
+            n=$(git diff --cached --name-only --diff-filter=A -- episodes | grep -c transcript.md || true)
+            git commit -m "data: sync transcripts ($n new, $(jq .episodes data/status.json) total)"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish database to the rolling data release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gzip -kf9 data/lennys.db
+          gh release view data >/dev/null 2>&1 || gh release create data --title "Transcript database" \
+            --notes "Rolling release. lennys.db.gz is rebuilt weekly; the server downloads it on first run and refreshes daily."
+          gh release upload data data/lennys.db.gz data/status.json --clobber
+          gh release edit data --notes "Rolling release, rebuilt $(date -u +%Y-%m-%d): $(jq -r '"\(.episodes) episodes, newest \(.newestPublishDate)"' data/status.json). The server downloads lennys.db.gz on first run and refreshes it daily."
+
+      # GitHub disables cron workflows after 60 days without commits. A weekly status
+      # commit only happens when episodes change, so keep the schedule alive explicitly.
+      - name: Keep scheduled workflow enabled
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow enable sync.yml || true

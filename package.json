@@ -1,7 +1,7 @@
 {
   "name": "lennys-podcast-wisdom",
-  "version": "1.0.1",
-  "description": "MCP server for querying product management wisdom from Lenny's Podcast transcripts",
+  "version": "2.0.0",
+  "description": "MCP server that puts every episode of Lenny's Podcast inside Claude Code, Cursor, or any MCP client. Local full-text search, self-updating transcripts, no API keys.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -9,15 +9,17 @@
   },
   "files": [
     "dist",
-    "scripts/download-transcripts.js",
     "README.md"
   ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "postinstall": "node scripts/download-transcripts.js",
-    "download-transcripts": "node scripts/download-transcripts.js"
+    "test": "tsx --test tests/*.test.ts",
+    "sync": "tsx src/cli/sync.ts",
+    "build:db": "tsx src/cli/build-db.ts",
+    "smoke": "tsx tests/smoke/mcp-client.ts",
+    "prepublishOnly": "npm run build && npm test"
   },
   "repository": {
     "type": "git",
@@ -35,19 +37,16 @@
   "author": "Evyatar Bluzer",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
-    "glob": "^10.3.0",
-    "gray-matter": "^4.0.3",
-    "lunr": "^2.3.9",
-    "zod": "^3.23.0"
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@types/lunr": "^2.3.7",
-    "@types/node": "^20.0.0",
-    "tsx": "^4.7.0",
-    "typescript": "^5.4.0"
+    "@types/node": "^24.0.0",
+    "gray-matter": "^4.0.3",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.13.0"
   }
 }

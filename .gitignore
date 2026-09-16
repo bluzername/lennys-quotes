@@ -1,8 +1,7 @@
 node_modules/
 dist/
-data/transcripts/
+data/*
+!data/status.json
 *.log
 .DS_Store
-test-results/
-test*.txt
-*.output
+.tmp/
