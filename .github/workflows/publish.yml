@@ -1,8 +1,13 @@
 name: Publish to npm
 
+# Uses npm trusted publishing (OIDC): no NPM_TOKEN secret. Configure the trusted
+# publisher once on npmjs.com (package settings -> Trusted Publisher -> GitHub Actions,
+# repository bluzername/lennys-quotes, workflow publish.yml).
+
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,11 +21,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: https://registry.npmjs.org
           cache: npm
+      - name: Upgrade npm (trusted publishing needs npm 11.5 or newer)
+        run: npm install -g npm@latest && npm --version
       - run: npm ci
       - run: npm run build
       - run: npm test
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
